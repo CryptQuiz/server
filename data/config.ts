@@ -2,11 +2,12 @@ export const INDEV =
   process.env.NODE_ENV === 'development' || process.env.TS_NODE_DEV === 'true'
 
 export const {
-  DB_HOST = INDEV ? '127.0.0.1' : 'postgres',
+  DB_HOST = 'dpg-ckkkcusl4vmc73alu1sg-a.frankfurt-postgres.render.com',
   DB_PORT = 5432,
-  DB_USER = 'postgres',
-  DB_PASSWORD = 'postgres',
-  DB_DATABASE = 'app',
+  DB_USER = 'crypto_quiz_user',
+  DB_PASSWORD = 'E2iBtEstTNGl2sB7m22iohB1gJJa3S7S',
+  DB_DATABASE = 'crypto_quiz',
+  DB_SSL = true,
 
   // REDIS_HOST = INDEV ? 'localhost' : 'redis',
   // REDIS_PORT = 6379,
@@ -17,8 +18,8 @@ export const Config = {
   swagger: {
     swagger: {
       info: {
-        title: 'Premarketcap Backend Swagger',
-        description: 'Premarketcap Backend Swagger API',
+        title: 'CrytQuiz Backend Swagger',
+        description: 'CrytQuiz Backend Swagger API',
         version: '0.1.0',
       },
       tags: [
@@ -30,13 +31,14 @@ export const Config = {
   swaggerUI: {
     routePrefix: '/docs',
   },
-  jwtSecret: 'ELIZA',
+  jwtSecret: 'Atesh',
   db: {
     host: DB_HOST,
     port: Number(DB_PORT),
     user: DB_USER,
     password: DB_PASSWORD,
     database: DB_DATABASE,
+    ssl: true,
   },
 }
 
