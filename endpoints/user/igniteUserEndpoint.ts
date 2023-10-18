@@ -7,5 +7,5 @@ import {
 export default async function (app) {
   app.get('/', getAllUserHandler)
   app.get('/:id', getUserByIdHandler)
-  app.post('/', createUserHandler)
+  app.post('/create', createUserHandler)
 }
