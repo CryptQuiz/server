@@ -37,8 +37,6 @@ export const getUserById = async (id: string) => {
   }
 }
 
-//data stats is jsonb
-
 export const createUser = async (data, profile) => {
   const isUserExists = await pg.oneOrNone(
     'SELECT * FROM users WHERE wallet_key_public = $1',
@@ -85,6 +83,16 @@ export const updateUser = async (data) => {
       'UPDATE users SET profile_photo = $1, username = $2, stats = $3 WHERE wallet_key_public = $4',
       [data.profile_photo, data.username, data.stats, data.wallet_key_public],
     )
+    return result.rows
+  } catch (err) {
+    console.log(err)
+    return err
+  }
+}
+
+export const deleteUser = async (id: string) => {
+  try {
+    const result = await pg.query('DELETE FROM users WHERE id = $1', [id])
     return result.rows
   } catch (err) {
     console.log(err)
