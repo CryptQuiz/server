@@ -38,19 +38,25 @@ export const getUserById = async (id: string) => {
 }
 
 //data stats is jsonb
-// const stats = {
-//   total: 0,
-//   correct: 0,
-//   incorrect: 0,
-//   score: 0,
-// }
 
 export const createUser = async (data, profile) => {
+  const isUserExists = await pg.oneOrNone(
+    'SELECT * FROM users WHERE wallet_key_public = $1',
+    [data.wallet_key_public],
+  )
+
+  if (isUserExists) {
+    throw new Error('User already exists')
+  }
+
   console.log('data', profile)
   const uploadProfile = await upload(profile).then((res) => {
     return res
   })
+  console.log('res', uploadProfile.url)
+
   data.profile_photo = uploadProfile.url
+
   try {
     const result = await pg.query(
       'INSERT INTO users ( wallet_key_public, profile_photo, username, stats) VALUES ($1, $2, $3, $4)',

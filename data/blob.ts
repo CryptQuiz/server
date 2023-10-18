@@ -15,5 +15,5 @@ export default async function upload(file) {
     contentType: file.mimetype,
   })
 
-  return Response.json(blob)
+  return blob
 }

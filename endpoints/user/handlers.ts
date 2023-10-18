@@ -29,13 +29,13 @@ export const getUserByIdHandler = async (
     })
 }
 
-export const createUserHandler = async (req, rep) => {
-  // const { id: uid } = req.session
+export const createUserHandler = async (
+  req,
+
+  rep,
+) => {
   const body = await req.file()
-
-  // console.log('body', { body })
-
-  // console.log('body.fields', { body: body.file })
+  console.log('body.fields', body)
 
   const data = JSON.parse(body.fields.data.value)
   console.log('body.data', data)
@@ -54,7 +54,7 @@ export const createUserHandler = async (req, rep) => {
     .type('application/json')
     .headers({ 'Content-Type': 'application/json' })
     .send({
-      message: 'Community created successfully',
+      message: 'User created successfully',
       status: 'success',
       data: result,
     })
