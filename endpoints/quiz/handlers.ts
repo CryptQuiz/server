@@ -5,21 +5,18 @@ export const getAllQuizHandler = async (
   req: FastifyRequest,
   rep: FastifyReply,
 ) => {
-  const result = await QuizOperations.getAllQuiz().catch((err) => {
-    console.log('err', err)
-    console.log({ err })
-
-    rep.code(404).send({
-      message: err,
+  const result = await QuizOperations.getAllQuiz()
+    .then((res) => {
+      return res
     })
-  })
+    .catch((err) => {
+      console.log('err', err)
+      console.log({ err })
 
-  // if (result) {
-  //   result.rows.map((quiz) => {
-  //     quiz.questions = JSON.parse(quiz.questions)
-  //     quiz.rewards = JSON.parse(quiz.rewards)
-  //   })
-  // }
+      rep.code(404).send({
+        message: err,
+      })
+    })
 
   return result
 }

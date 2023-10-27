@@ -2,8 +2,6 @@
   "name": "backend-ts",
   "version": "1.0.0",
   "main": "build/igniteServer.js",
-  "repository": "git@bark.gen.tr:premarketcap/backend-ts.git",
-  "author": "Kerem Noras <kerem@noras.tech>",
   "license": "MIT",
   "scripts": {
     "build": "tsc -p tsconfig.json && tsc-alias -p tsconfig.json",

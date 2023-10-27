@@ -24,19 +24,29 @@ import { pg } from 'interceptors/Postgres'
 // ALTER TABLE public.quiz ADD CONSTRAINT fk_sponsor_id FOREIGN KEY (sponsor_id) REFERENCES public.sponsors(id);
 export const getAllQuiz = async () => {
   try {
-    const result = await pg.query('SELECT * FROM quiz')
-    console.log('result', result)
+    const result = await pg
+      .manyOrNone('SELECT * FROM quiz')
+      .then((res) => {
+        return res.map((quiz) => {
+          quiz.questions = quiz.questions.map((question) =>
+            JSON.parse(question),
+          )
+          quiz.rewards = quiz.rewards.map((reward) => JSON.parse(reward))
+          return quiz
+        })
+      })
+      .catch((err) => {
+        console.log('err', err)
+        return err
+      })
+
+    console.log('res', result)
+
     return result
   } catch (err) {
     console.log(err)
     return err
   }
-}
-
-type Quiestion = {
-  question: string
-  answer: string
-  options: string[]
 }
 
 export const createQuiz = async (data) => {

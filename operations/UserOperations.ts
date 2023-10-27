@@ -15,7 +15,7 @@
 // 	CONSTRAINT users_pkey PRIMARY KEY (id)
 // );
 import { pg } from 'interceptors/Postgres'
-import upload from '../data/blob'
+import { upload, getBlob } from '../data/blob'
 
 export const getAllUsers = async () => {
   try {
@@ -29,8 +29,24 @@ export const getAllUsers = async () => {
 
 export const getUserById = async (id: string) => {
   try {
-    const result = await pg.query('SELECT * FROM users WHERE id = $1', [id])
-    return result.rows
+    const result = await pg.oneOrNone('SELECT * FROM users WHERE id = $1', [id])
+
+    console.log('result', result)
+
+    const profile = await getBlob(result.profilePhoto)
+      .then((res) => {
+        console.log('res', res)
+        return res
+      })
+      .catch((err) => {
+        console.log(err)
+        return err
+      })
+
+    return {
+      ...result.rows,
+      profile_photo: profile,
+    }
   } catch (err) {
     console.log(err)
     return err
@@ -68,7 +84,8 @@ export const createUser = async (data, profile) => {
 }
 
 export const updateUser = async (data) => {
-  //check pbulic key exists
+  //check pbulic key existsdb
+
   const isUserExists = await pg.oneOrNone(
     'SELECT * FROM users WHERE wallet_key_public = $1',
     [data.wallet_key_public],

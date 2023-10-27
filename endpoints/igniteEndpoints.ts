@@ -2,7 +2,7 @@ import User from './user/igniteUserEndpoint'
 import Quiz from './quiz/igniteQuizEndpoint'
 
 export default async function (app) {
-  app.get('/', (req, rep) => {
+  app.get('/home', (req, rep) => {
     rep.send('Service provider is working properly!')
   })
 
