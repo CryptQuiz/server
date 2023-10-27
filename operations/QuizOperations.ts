@@ -22,6 +22,25 @@ import { pg } from 'interceptors/Postgres'
 // -- public.quiz foreign keys
 
 // ALTER TABLE public.quiz ADD CONSTRAINT fk_sponsor_id FOREIGN KEY (sponsor_id) REFERENCES public.sponsors(id);
+// Create: Yeni bir quiz oluşturur
+export const createQuiz = async (quizData) => {
+  try {
+    const { name, description, type, sponsorId, questions, rewards } = quizData
+
+    const query = {
+      text: 'INSERT INTO quiz (name, description, type, sponsor_id, questions, rewards) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+      values: [name, description, type, sponsorId, questions, rewards],
+    }
+
+    const result = await pg.oneOrNone(query)
+    return result
+  } catch (err) {
+    console.error(err)
+    return err
+  }
+}
+
+// Read: Tüm quizleri getirir
 export const getAllQuiz = async () => {
   try {
     const result = await pg
@@ -40,52 +59,59 @@ export const getAllQuiz = async () => {
         return err
       })
 
-    console.log('res', result)
-
     return result
   } catch (err) {
-    console.log(err)
+    console.error(err)
     return err
   }
 }
 
-export const createQuiz = async (data) => {
+// Update: Varolan bir quizi günceller
+export const updateQuiz = async (quizId, updatedData) => {
   try {
-    const result = await pg.query(
-      'INSERT INTO quiz ( name, description, type, sponsor_id, questions, rewards) VALUES ($1, $2, $3, $4, $5, $6)',
-      [
-        data.name,
-        data.description,
-        data.type,
-        data.sponsor_id,
-        data.questions,
-        data.rewards,
-      ],
-    )
+    const { name, description, type, sponsorId, questions, rewards } =
+      updatedData
+
+    const query = {
+      text: 'UPDATE quiz SET name=$2, description=$3, type=$4, sponsor_id=$5, questions=$6, rewards=$7 WHERE id=$1 RETURNING *',
+      values: [quizId, name, description, type, sponsorId, questions, rewards],
+    }
+
+    const result = await pg.oneOrNone(query)
     return result
   } catch (err) {
-    console.log(err)
+    console.error(err)
     return err
   }
 }
 
-export const updateQuiz = async (data) => {
+// Delete: Varolan bir quizi siler
+export const deleteQuiz = async (quizId) => {
   try {
-    const result = await pg.query(
-      'UPDATE quiz SET name = $1, description = $2, type = $3, sponsor_id = $4, questions = $5, rewards = $6 WHERE id = $7',
-      [
-        data.name,
-        data.description,
-        data.type,
-        data.sponsor_id,
-        data.questions,
-        data.rewards,
-        data.id,
-      ],
-    )
+    const query = {
+      text: 'DELETE FROM quiz WHERE id=$1 RETURNING *',
+      values: [quizId],
+    }
+
+    const result = await pg.oneOrNone(query)
     return result
   } catch (err) {
-    console.log(err)
+    console.error(err)
+    return err
+  }
+}
+
+export const getQuiz = async (quizId) => {
+  try {
+    const query = {
+      text: 'SELECT * FROM quiz WHERE id=$1',
+      values: [quizId],
+    }
+
+    const result = await pg.oneOrNone(query)
+    return result
+  } catch (err) {
+    console.error(err)
     return err
   }
 }
