@@ -1,46 +1,5 @@
-// -- public.users definition
-
-// -- Drop table
-
-// -- DROP TABLE public.users;
-
-// CREATE TABLE public.users (
-// 	id uuid NOT NULL,
-// 	wallet_key_public text NULL,
-// 	profile_photo text NULL,
-// 	username text NULL,
-// 	stats jsonb NULL,
-// 	created_at timestamptz NULL DEFAULT CURRENT_TIMESTAMP,
-// 	deleted_at timestamptz NULL,
-// 	CONSTRAINT users_pkey PRIMARY KEY (id)
-// );
-
-// -- Table: public.users_credentials
-
-// -- DROP TABLE IF EXISTS public.users_credentials;
-
-// CREATE TABLE IF NOT EXISTS public.users_credentials
-// (
-//     credential uuid NOT NULL DEFAULT uuid_generate_v4(),
-//     uid uuid NOT NULL,
-//     createdat timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
-//     destroyedat timestamp with time zone,
-//     CONSTRAINT users_credentials_pkey PRIMARY KEY (credential),
-//     CONSTRAINT fk_user_id FOREIGN KEY (uid)
-//         REFERENCES public.users (id) MATCH SIMPLE
-//         ON UPDATE NO ACTION
-//         ON DELETE NO ACTION
-// )
-
-// TABLESPACE pg_default;
-
-// ALTER TABLE IF EXISTS public.users_credentials
-//     OWNER to crypto_quiz_user;
 import { pg } from 'interceptors/Postgres'
 import { upload, getBlob } from '../data/blob'
-
-import fastify from 'fastify'
-
 import { server } from '../igniteServer'
 
 export const getUserByPublicKey = async (publicKey: string) => {
@@ -59,21 +18,21 @@ export const getUserByPublicKey = async (publicKey: string) => {
 export const createCredential = async (publicKey: string) => {
   try {
     const isUserExists = await getUserByPublicKey(publicKey)
-      .then((res) => {
-        return res
-      })
-      .catch((err) => {
-        return err
-      })
 
     if (!isUserExists) {
-      throw new Error('User does not exists')
+      throw new Error('User does not exist')
+    }
+
+    const existingCredential = await pg.oneOrNone(
+      'SELECT * FROM users_credentials WHERE uid = $1 AND destroyedat IS NULL',
+      [isUserExists.id],
+    )
+
+    if (existingCredential) {
+      throw new Error('User already has an active credential')
     }
 
     const hash = server.jwt.sign({ publicKey })
-
-    console.log('hash', hash)
-    console.log('isUserExists', isUserExists)
 
     const result = await pg.oneOrNone(
       'INSERT INTO users_credentials (credential, uid) VALUES ($1, $2) RETURNING credential',
@@ -82,24 +41,26 @@ export const createCredential = async (publicKey: string) => {
 
     return result
   } catch (err) {
-    console.log(err)
-    return err
+    return {
+      error: true,
+      message: err.message,
+    }
   }
 }
 
-export const getCredentials = async (
-  token: string,
-  validity: boolean = false,
-) => {
+export const getCredentials = async (token: string, validity = false) => {
   const credential = await pg.oneOrNone(
-    `select * from user_credentials where credential = $1 ${
-      validity ? 'and destroyedat is null' : ''
-    } order by createdat desc limit 1`,
+    `SELECT * FROM users_credentials WHERE credential = $1 ${
+      validity ? 'AND destroyedat IS NULL' : ''
+    } ORDER BY createdat DESC LIMIT 1`,
     [token],
   )
 
   if (credential) {
-    return credential.data
+    return {
+      data: credential.data,
+      showInstructions: Number(credential.signinCount) < 2,
+    }
   }
 
   return null
@@ -118,7 +79,6 @@ export const getAllUsers = async () => {
 export const getUserById = async (id: string) => {
   try {
     const result = await pg.oneOrNone('SELECT * FROM users WHERE id = $1', [id])
-
     console.log('result', result)
 
     const profile = await getBlob(result.profilePhoto)
@@ -151,23 +111,22 @@ export const createUser = async (data, profile) => {
     throw new Error('User already exists')
   }
 
-  console.log('data', profile)
-  const uploadProfile = await upload(profile).then((res) => {
-    return res
-  })
-  console.log('res', uploadProfile.url)
+  const uploadProfile = await upload(profile)
 
   data.profile_photo = uploadProfile.url
 
   try {
-    const result = await pg.query(
-      'INSERT INTO users ( wallet_key_public, profile_photo, username, stats) VALUES ($1, $2, $3, $4)',
+    const result = await pg.oneOrNone(
+      'INSERT INTO users (wallet_key_public, profile_photo, username, stats) VALUES ($1, $2, $3, $4) returning *',
       [data.wallet_key_public, data.profile_photo, data.username, data.stats],
     )
 
-    await createCredential(data.wallet_key_public)
+    const credential = await createCredential(data.wallet_key_public)
 
-    return result.rows
+    return {
+      credential: credential.credential,
+      result: result,
+    }
   } catch (err) {
     console.log(err)
     return err
@@ -181,7 +140,7 @@ export const updateUser = async (data) => {
   )
 
   if (!isUserExists) {
-    throw new Error('User does not exists')
+    throw new Error('User does not exist')
   }
 
   try {

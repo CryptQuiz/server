@@ -9,13 +9,9 @@ export const config = {
 export async function upload(file) {
   const filename = file.filename
 
-  console.log('file', file)
-
   const blob = await put(filename, file, {
     access: 'public',
   })
-
-  console.log('blob', blob)
 
   return blob
 }

@@ -31,35 +31,42 @@ export const getUserByIdHandler = async (
     })
 }
 
-export const createUserHandler = async (
-  req,
+export const createUserHandler = async (req, rep) => {
+  try {
+    const body = await req.file()
+    const data = JSON.parse(body.fields.data.value)
+    const profile = body.fields.profile
 
-  rep,
-) => {
-  const body = await req.file()
-  console.log('body.fields', body)
+    const result = await UserOperations.createUser(data, profile)
 
-  const data = JSON.parse(body.fields.data.value)
-  console.log('body.data', data)
-  const profile = body.fields.profile
+    if (!result) {
+      return rep.code(404).send({
+        message: 'User creation failed',
+      })
+    }
 
-  const result = await UserOperations.createUser(data, profile).catch((err) => {
-    console.log('err', err)
-    console.log({ err })
+    const walletKeyPublic = data.wallet_key_public
+    const credentialResult = await UserOperations.createCredential(
+      walletKeyPublic,
+    )
 
-    rep.code(404).send({
-      message: err,
-    })
-  })
+    if (!credentialResult) {
+      return rep.code(404).send({
+        message: 'Credential creation failed',
+      })
+    }
 
-  return rep
-    .type('application/json')
-    .headers({ 'Content-Type': 'application/json' })
-    .send({
+    return rep.code(200).send({
       message: 'User created successfully',
-      status: 'success',
-      data: result,
+
+      credential: credentialResult.credential,
     })
+  } catch (err) {
+    console.error('Error:', err)
+    return rep.code(500).send({
+      message: 'Internal server error',
+    })
+  }
 }
 
 export const updateUserHandler = async (
@@ -101,8 +108,16 @@ export const Login = async (
     })
 }
 
-export const checkSession = (req, rep) => {
+export const checkSession = (
+  req: FastifyRequest<{
+    Body: {
+      credentials: string
+    }
+  }>,
+  rep,
+) => {
   const { credentials } = req.body
+  console.log('credentials', credentials)
 
   UserOperations.getCredentials(credentials, true)
     .then(async (result) => {

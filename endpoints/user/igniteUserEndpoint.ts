@@ -13,11 +13,11 @@ export default async function (app: FastifyInstance) {
   app.post('/create', createUserHandler)
   app.post('/login', Login)
 
-  // app.register(Authentication)
+  app.register(Authentication)
 
   app.get('/', getAllUserHandler)
-  app.get('/checkSession', checkSession)
-  // app.get('/:id', getUserByIdHandler)
+
+  app.post('/checkSession', checkSession)
 
   app.put('/:id', updateUserHandler)
 }
