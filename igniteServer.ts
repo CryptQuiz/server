@@ -7,7 +7,7 @@ import fastifyJwt from '@fastify/jwt'
 import fastifyMultipart from '@fastify/multipart'
 import Endpoints from './endpoints/igniteEndpoints'
 
-const server = fastify({
+export const server = fastify({
   bodyLimit: 1048576 * 10,
   pluginTimeout: INDEV ? 30000 : 10000,
 })

@@ -20,6 +20,8 @@ export const getUserByIdHandler = async (
 ) => {
   const { id } = req.params as any
 
+  console.log('id', id)
+
   await UserOperations.getUserById(id)
     .then((res) => {
       return res
@@ -72,5 +74,45 @@ export const updateUserHandler = async (
     })
     .catch((err) => {
       return err
+    })
+}
+
+export const Login = async (
+  req: FastifyRequest<{
+    Body: {
+      wallet_key_public: string
+    }
+  }>,
+  rep: FastifyReply,
+) => {
+  const { wallet_key_public } = req.body as any
+  console.log('wallet_key_public', wallet_key_public)
+
+  await UserOperations.createCredential(wallet_key_public)
+    .then((result) => {
+      if (result) {
+        return rep.code(200).send(result)
+      }
+      return rep.code(400).send({ message: 'Invalid credentials' })
+    })
+    .catch((err) => {
+      console.error(err)
+      return rep.code(400).send({ message: err.message })
+    })
+}
+
+export const checkSession = (req, rep) => {
+  const { credentials } = req.body
+
+  UserOperations.getCredentials(credentials, true)
+    .then(async (result) => {
+      return rep.code(200).send({
+        valid: !!result,
+        showInstructions: result?.showInstructions,
+      })
+    })
+    .catch((err) => {
+      console.error(err)
+      return rep.code(500).send({ message: 'Internal server error' })
     })
 }

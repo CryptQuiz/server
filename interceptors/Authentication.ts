@@ -4,7 +4,8 @@ import { FastifyInstance } from 'fastify'
 
 export interface ISession {
   id: string
-  email: string
+  wallet_key_public: string
+
   username: string
 }
 
@@ -18,33 +19,37 @@ declare module 'fastify' {
   }
 }
 
-export const Authenticator = (app) => async (req, rep) => {
+export const Authenticator = async (req, rep) => {
   const token = req.headers.credentials
 
   if (!token) {
     return rep.status(401).send({ message: 'Unauthorized' })
   }
 
-  // check from user_credentials table, is this token exist and valid?
+  // Check if the token exists and is valid in the user_credentials table
   const credentials = await pg.query(
-    'SELECT * FROM user_credentials WHERE credential = $1 and destroyedat is null',
+    'SELECT u.id, u.wallet_key_public, u.profile_photo, u.username, c.destroyedat FROM users_credentials c INNER JOIN users u ON c.uid = u.id WHERE c.credential = $1 and c.destroyedat is null',
     [token],
   )
 
-  if (!credentials) {
+  if (!credentials || credentials.rows.length === 0) {
     return rep.status(401).send({ message: 'Unauthorized' })
   }
 
-  // jwt decode
-  const session = app.jwt.decode(token as string)
+  const userSession: ISession = {
+    id: credentials.rows[0].id,
+    wallet_key_public: credentials.rows[0].wallet_key_public,
 
-  req.session = session as ISession
+    username: credentials.rows[0].username,
+  }
+
+  req.session = userSession
 }
 
 export const Authentication = async function (app: FastifyInstance) {
-  app.addHook('preValidation', Authenticator(app))
+  app.addHook('preValidation', Authenticator)
 
-  // return 0
+  // Return 0
 }
 
 export default Authentication
