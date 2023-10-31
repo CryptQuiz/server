@@ -6,10 +6,17 @@ import { fastifySwaggerUi } from '@fastify/swagger-ui'
 import fastifyJwt from '@fastify/jwt'
 import fastifyMultipart from '@fastify/multipart'
 import Endpoints from './endpoints/igniteEndpoints'
+import fastifyCors from '@fastify/cors'
 
 export const server = fastify({
   bodyLimit: 1048576 * 10,
   pluginTimeout: INDEV ? 30000 : 10000,
+})
+
+server.register(fastifyCors, {
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 })
 
 server.register(fastifySwagger, {

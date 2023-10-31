@@ -5,7 +5,6 @@ import { FastifyInstance } from 'fastify'
 export interface ISession {
   id: string
   wallet_key_public: string
-
   username: string
 }
 

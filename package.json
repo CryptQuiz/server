@@ -11,13 +11,13 @@
   "dependencies": {
     "@fastify/cors": "^8.3.0",
     "@fastify/jwt": "^7.2.1",
-    
     "@fastify/multipart": "^7.7.3",
     "@fastify/swagger": "^8.10.0",
     "@fastify/swagger-ui": "^1.9.3",
     "@vercel/blob": "^0.14.0",
     "dotenv": "^16.3.1",
     "fastify": "^4.23.2",
+  
     "fastify-plugin": "^4.5.1",
     "pg-promise": "^11.5.4"
   },
