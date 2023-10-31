@@ -6,6 +6,7 @@ import {
   checkSession,
   Login,
   updateUserHandler,
+  Logout,
 } from './handlers'
 import Authentication from 'interceptors/Authentication'
 
@@ -20,4 +21,6 @@ export default async function (app: FastifyInstance) {
   app.post('/checkSession', checkSession)
 
   app.put('/:id', updateUserHandler)
+
+  app.post('/logout', Logout)
 }

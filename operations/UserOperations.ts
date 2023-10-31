@@ -48,6 +48,19 @@ export const createCredential = async (publicKey: string) => {
   }
 }
 
+export const deleteCredential = async (token: string) => {
+  try {
+    const result = await pg.query(
+      'UPDATE users_credentials SET destroyedat = NOW() WHERE credential = $1',
+      [token],
+    )
+    return result.rows
+  } catch (err) {
+    console.log(err)
+    return err
+  }
+}
+
 export const getCredentials = async (token: string, validity = false) => {
   const credential = await pg.oneOrNone(
     `SELECT * FROM users_credentials WHERE credential = $1 ${
@@ -108,7 +121,7 @@ export const createUser = async (data) => {
   )
 
   if (isUserExists) {
-    throw new Error('User already exists')
+    updateUser(data)
   }
 
   // const uploadProfile = await upload(profile)

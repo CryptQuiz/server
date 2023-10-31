@@ -105,6 +105,23 @@ export const Login = async (
     })
 }
 
+export const Logout = async (req: FastifyRequest, rep: FastifyReply) => {
+  const { credentials } = req.body as any
+  console.log('credentials', credentials)
+
+  await UserOperations.deleteCredential(credentials)
+    .then((result) => {
+      if (result) {
+        return rep.code(200).send({ message: 'Logout successful' })
+      }
+      return rep.code(400).send({ message: 'Invalid credentials' })
+    })
+    .catch((err) => {
+      console.error(err)
+      return rep.code(400).send({ message: err.message })
+    })
+}
+
 export const checkSession = (
   req: FastifyRequest<{
     Body: {
