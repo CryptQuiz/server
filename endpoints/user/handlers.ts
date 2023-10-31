@@ -32,24 +32,22 @@ export const getUserByIdHandler = async (
 }
 
 export const createUserHandler = async (req, rep) => {
+  const { data } = req.body as any
+
   try {
-    const body = await req.file()
-    const data = JSON.parse(body.fields.data.value)
-    const profile = body.fields.profile
-
-    const result = await UserOperations.createUser(data, profile)
-
+    const result = await UserOperations.createUser(data)
     if (!result) {
       return rep.code(404).send({
         message: 'User creation failed',
       })
     }
+    const walletKeyPublic = data
+    console.log('walletKeyPublic', walletKeyPublic)
+    console.log('data', data)
 
-    const walletKeyPublic = data.wallet_key_public
     const credentialResult = await UserOperations.createCredential(
       walletKeyPublic,
     )
-
     if (!credentialResult) {
       return rep.code(404).send({
         message: 'Credential creation failed',
@@ -58,7 +56,6 @@ export const createUserHandler = async (req, rep) => {
 
     return rep.code(200).send({
       message: 'User created successfully',
-
       credential: credentialResult.credential,
     })
   } catch (err) {
