@@ -1,0 +1,18 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model quiz_result {
+  quiz_id         Int           @id @unique @default(autoincrement())
+  user_name       String        @unique @db.VarChar(20)
+  user_score      Int       
+  user_time       Int
+}
